@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 3fc233a9407d11f46a1983e4692babf9
+labels:
+- FusionPrefab
+AssetOrigin:
+  serializedVersion: 1
+  productId: 142438
+  packageName: Robot Soldier
+  packageVersion: 1.0
+  assetPath: Assets/Robot_Soldier/Prefabs/Robot_Soldier_Blue.prefab
+  uploadId: 301415
+PrefabImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
