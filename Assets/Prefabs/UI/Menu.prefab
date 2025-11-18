@@ -55,7 +55,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 305f58c6681d93d458827b9614b004eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _config: {fileID: 11400000, guid: 34b2199229ae385429fd7974edef5132, type: 2}
+  _config: {fileID: 11400000, guid: 569748e5da423c34fa00bad2d0b520cd, type: 2}
   _connection: {fileID: 841090234438633705}
   _screens:
   - {fileID: 8072485756304130384}
@@ -76,9 +76,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 235aed1efc9f1ef45a6ba32a4bac8f5c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  UIController: {fileID: 1123468795944434717}
-  config: {fileID: 11400000, guid: 34b2199229ae385429fd7974edef5132, type: 2}
-  NetworkRunnerPrefab: {fileID: 0}
+  config: {fileID: 11400000, guid: 569748e5da423c34fa00bad2d0b520cd, type: 2}
+  networkRunnerPrefab: {fileID: 0}
 --- !u!1001 &411580428374830679
 PrefabInstance:
   m_ObjectHideFlags: 0
