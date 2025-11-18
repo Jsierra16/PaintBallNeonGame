@@ -76,6 +76,7 @@ public class Player : NetworkBehaviour
             }
         }
     }
+    
 
     public override void Render()
     {
@@ -108,4 +109,27 @@ public class Player : NetworkBehaviour
     {
         Name = name;
     }
+
+    private void Update()
+{
+    if (!HasInputAuthority) return; // Only the local player can press keys
+    if (UIManager.Singleton == null) return;
+
+    // Restart the game (try again)
+    if (Input.GetKeyDown(KeyCode.T))
+    {
+        HitManager.Instance?.ResetAll();
+        var gameLogic = FindObjectOfType<GameLogic>();
+        if (gameLogic != null)
+            gameLogic.ResetGame(); // Resets positions, ready state, and UI
+    }
+
+    // Go back to Main Menu
+    if (Input.GetKeyDown(KeyCode.M))
+    {
+        UnityEngine.SceneManagement.SceneManager.LoadScene("Main");
+    }
+}
+
+
 }

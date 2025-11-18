@@ -29,18 +29,20 @@ public class GameLogic : NetworkBehaviour, IPlayerJoined, IPlayerLeft
         UIManager.Singleton.SetWaitUI(State, null, Loser);
     }
 
-    public void PlayerLost(Player lostPlayer)
-    {
-        if (!Runner.IsServer) return; // Only host decides
+   public void PlayerLost(Player lostPlayer)
+{
+    if (!Runner.IsServer) return;
 
-        Loser = lostPlayer;
+    Loser = lostPlayer;
 
-        // Update UI to show loser immediately
-        UIManager.Singleton.ShowLoserImage(Loser.Name);
+    // Show UI with restart/main options
+    if (UIManager.Singleton != null)
+        UIManager.Singleton.ShowEndGameOptions(Loser.Name);
 
-        // Switch state to waiting so the round resets
-        State = GameState.Waiting;
-    }
+    // Stop the round
+    State = GameState.Waiting;
+}
+
 
     private void PreparePlayers()
     {
@@ -119,4 +121,21 @@ public class GameLogic : NetworkBehaviour, IPlayerJoined, IPlayerLeft
             }
         }
     }
+
+    public void ResetGame()
+{
+    State = GameState.Waiting;
+    Loser = null;
+
+    // Reset all players
+    foreach (var kvp in Players)
+    {
+        kvp.Value.gameObject.SetActive(true);
+        kvp.Value.IsReady = false;
+    }
+
+    // Reset UI
+    UIManager.Singleton?.ResetUI();
+}
+
 }

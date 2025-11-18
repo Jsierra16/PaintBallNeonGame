@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Fusion;
+using Fusion.Addons.SimpleKCC;
+
 
 public class HitManager : NetworkBehaviour
 {
@@ -71,36 +73,51 @@ public class HitManager : NetworkBehaviour
     }
 
     public void RegisterHitForPlayer(PlayerHitDetectorTrigger player)
+{
+    if (gameOver || player == null) return;
+
+    int id = player.GetInstanceID();
+    if (!playerHits.ContainsKey(id))
+        playerHits[id] = player.currentHits;
+
+    playerHits[id]++;
+    player.currentHits = playerHits[id];
+
+    int number = playerNumberById[id];
+    uiManager.UpdateHitsUI(number, playerHits[id]);
+
+    Debug.Log($"{player.playerName} got hit! Total hits: {playerHits[id]}");
+
+    if (playerHits[id] >= hitsToLose)
     {
-        if (gameOver || player == null) return;
+        gameOver = true;
 
-        int id = player.GetInstanceID();
-        if (!playerHits.ContainsKey(id))
-            playerHits[id] = player.currentHits;
-
-        playerHits[id]++;
-        player.currentHits = playerHits[id];
-
-        int number = playerNumberById[id];
-        uiManager.UpdateHitsUI(number, playerHits[id]);
-
-        Debug.Log($"{player.playerName} got hit! Total hits: {playerHits[id]}");
-
-        if (playerHits[id] >= hitsToLose)
+        // Get the actual Player object
+        Player playerObj = player.playerComponent;
+        if (playerObj != null)
         {
-            gameOver = true;
+            // Freeze the player by disabling the KCC
+            var kcc = playerObj.GetComponent<SimpleKCC>();
+            if (kcc != null)
+                kcc.enabled = false;
 
-            player.OnLoseAndDestroy();
+            // Disable shooting
+            if (playerObj.GetComponent<BallSpawner>() != null)
+                playerObj.GetComponent<BallSpawner>().enabled = false;
 
-            // Notify GameLogic
-            var logic = FindObjectOfType<GameLogic>();
-            if (logic != null)
-                logic.PlayerLost(player.playerComponent);
-
-            // Show UI loser image
-            uiManager.ShowLoserImage(player.playerName);
+            // Optional: mark as not ready
+            playerObj.IsReady = false;
         }
+
+        // Notify GameLogic
+        var logic = FindObjectOfType<GameLogic>();
+        if (logic != null)
+            logic.PlayerLost(playerObj);
+
+        // Show end game UI
+        uiManager.ShowEndGameOptions(player.playerName);
     }
+}
 
     public void ResetAll()
     {
