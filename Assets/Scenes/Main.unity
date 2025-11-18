@@ -2304,6 +2304,8 @@ MonoBehaviour:
   playerLayer:
     serializedVersion: 2
     m_Bits: 64
+  respawnPoints:
+  - {fileID: 0}
 --- !u!114 &1835609162
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2324,6 +2326,8 @@ MonoBehaviour:
   - {fileID: 4633537}
   loserImage: {fileID: 1057053463}
   loserText: {fileID: 308847844}
+  restartInstruction: 
+  mainMenuInstruction: 
 --- !u!114 &1835609163
 MonoBehaviour:
   m_ObjectHideFlags: 0
