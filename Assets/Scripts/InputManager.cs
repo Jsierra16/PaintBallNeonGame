@@ -11,6 +11,7 @@ using Fusion.Menu;
 
 public class InputManager : SimulationBehaviour, IBeforeUpdate, INetworkRunnerCallbacks
 {
+    public Player LocalPlayer;
     private  NetInput accumulatedInput;
     private bool resetInput;
     void IBeforeUpdate.BeforeUpdate()
@@ -50,6 +51,9 @@ public class InputManager : SimulationBehaviour, IBeforeUpdate, INetworkRunnerCa
 
         if(keyboard != null)
         {
+            if (keyboard.rKey.wasPressedThisFrame && LocalPlayer != null)
+            LocalPlayer.RPC_SetReady();
+
             Vector2 moveDirection = Vector2.zero;
             if(keyboard.wKey.isPressed)
                 moveDirection += Vector2.up;

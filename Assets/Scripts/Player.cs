@@ -1,6 +1,9 @@
+using System.Numerics;
 using Fusion;
 using Fusion.Addons.SimpleKCC;
 using UnityEngine;
+using Quaternion = UnityEngine.Quaternion;
+using Vector3 = UnityEngine.Vector3;
 
 public class Player : NetworkBehaviour 
 {
@@ -11,6 +14,9 @@ public class Player : NetworkBehaviour
     [SerializeField] private float lookSensitivity = 0.15f;
     [SerializeField] private float speed = 5f;
     [SerializeField] private float jumpImpulse = 10f;
+    public bool IsReady;
+
+    [Networked] public string Name { get; private set; }
 
     [Header("Shooting")]
     [SerializeField] private BallSpawner ballSpawner; // assign in inspector
@@ -24,10 +30,19 @@ public class Player : NetworkBehaviour
         kcc.SetGravity(Physics.gravity.y * 2f);
 
         if (HasInputAuthority)
-            CameraFollow.Singleton.SetTarget(camTarget);
+        {
 
-        foreach (MeshRenderer renderer in modelParts)
+            foreach (MeshRenderer renderer in modelParts)
             renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly;
+
+        Runner.GetComponent<InputManager>().LocalPlayer = this;    
+        Name = PlayerPrefs.GetString("Photon.Menu.Username");
+        RPC_PlayerName(Name);
+        CameraFollow.Singleton.SetTarget(camTarget);
+
+        }
+
+      
     }
 
     public override void FixedUpdateNetwork()
@@ -70,5 +85,27 @@ public class Player : NetworkBehaviour
     private void UpdateCamTarget()
     {
         camTarget.localRotation = Quaternion.Euler(kcc.GetLookRotation().x, 0f, 0f);
+    }
+
+
+[Rpc(RpcSources.InputAuthority, RpcTargets.InputAuthority | RpcTargets.StateAuthority)]
+    public void RPC_SetReady()
+    {
+        IsReady = true;
+        if (HasInputAuthority)
+        UIManager.Singleton.DidSetReady();  
+    }
+
+    public void Teleport(Vector3 position, Quaternion rotation)
+    {
+        kcc.SetPosition(position);
+        kcc.SetLookRotation(rotation);
+    }
+
+
+    [Rpc(RpcSources.InputAuthority, RpcTargets.StateAuthority)]
+    private void RPC_PlayerName(string name)
+    {
+        Name = name;
     }
 }
