@@ -8,11 +8,10 @@ public class PlayerHitDetectorTrigger : NetworkBehaviour
     public int currentHits = 0;
 
     [Header("Optional")]
-    public Player playerComponent; // assign Player network component on prefab
+    public Player playerComponent; // networked player component
 
     private void Awake()
     {
-        // Register with HitManager
         if (HitManager.Instance != null)
             HitManager.Instance.RegisterPlayer(this);
     }
@@ -27,19 +26,31 @@ public class PlayerHitDetectorTrigger : NetworkBehaviour
     {
         if (!HasStateAuthority) return; // only server counts hits
 
-        // Detect collision with other players
+        // Hit by another player
         if (((1 << other.gameObject.layer) & HitManager.Instance.playerLayer) != 0)
         {
             var hitPlayer = other.GetComponent<PlayerHitDetectorTrigger>();
             if (hitPlayer != null && hitPlayer != this)
-                HitManager.Instance.RegisterHitForPlayer(hitPlayer);
+            {
+                // THIS player gets hit
+                HitManager.Instance.RegisterHitForPlayer(this);
+            }
+        }
+
+        // Hit by a PhysxBall
+        var ball = other.GetComponent<PhysxBall>();
+        if (ball != null)
+        {
+            HitManager.Instance.RegisterHitForPlayer(this);
+            ball.Consume(); // remove the ball
+            if (ObjectManager.Singleton != null)
+                ObjectManager.Singleton.UnregisterObject(ball.gameObject);
         }
     }
 
-    // Called by HitManager when player reaches hitsToLose
     public void OnLoseAndDestroy()
     {
-        // Optional: play death animation, disable player
+        // Optional: play death animation
         gameObject.SetActive(false);
     }
 }

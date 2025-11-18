@@ -84,24 +84,21 @@ public class HitManager : NetworkBehaviour
         int number = playerNumberById[id];
         uiManager.UpdateHitsUI(number, playerHits[id]);
 
+        Debug.Log($"{player.playerName} got hit! Total hits: {playerHits[id]}");
+
         if (playerHits[id] >= hitsToLose)
         {
             gameOver = true;
+
             player.OnLoseAndDestroy();
 
+            // Notify GameLogic
             var logic = FindObjectOfType<GameLogic>();
             if (logic != null)
-                logic.PlayerLost(player.GetComponent<Player>());
-        }
-    }
+                logic.PlayerLost(player.playerComponent);
 
-    private void OnTriggerEnter(Collider other)
-    {
-        if (((1 << other.gameObject.layer) & playerLayer) != 0)
-        {
-            var hitPlayer = other.GetComponent<PlayerHitDetectorTrigger>();
-            if (hitPlayer != null)
-                RegisterHitForPlayer(hitPlayer);
+            // Show UI loser image
+            uiManager.ShowLoserImage(player.playerName);
         }
     }
 

@@ -1075,7 +1075,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerName: 
   currentHits: 0
-  playerComponent: {fileID: 0}
+  playerComponent: {fileID: 3092993762425301685}
 --- !u!65 &-3002262796847004156
 BoxCollider:
   m_ObjectHideFlags: 0

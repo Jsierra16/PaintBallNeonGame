@@ -10,31 +10,35 @@ public class GameLogic : NetworkBehaviour, IPlayerJoined, IPlayerLeft
     [SerializeField] private Transform spawnpoint;
     [SerializeField] private Transform spawnpointPivot;
 
-    [Networked] private Player Winner { get; set; }
     [Networked] private Player Loser { get; set; }
     [Networked, OnChangedRender(nameof(GameStateChanged))] private GameState State { get; set; }
     [Networked, Capacity(4)] private NetworkDictionary<PlayerRef, Player> Players => default;
 
     public override void Spawned()
     {
-        Winner = null;
         Loser = null;
         State = GameState.Waiting;
-        UIManager.Singleton.SetWaitUI(State, Winner, Loser);
+        UIManager.Singleton.SetWaitUI(State, null, Loser);
     }
 
     private void GameStateChanged()
     {
         if (State == GameState.Playing)
-            UIManager.Singleton.HideWinnerImage();
+            UIManager.Singleton.HideLoserImage();
 
-        UIManager.Singleton.SetWaitUI(State, Winner, Loser);
+        UIManager.Singleton.SetWaitUI(State, null, Loser);
     }
 
     public void PlayerLost(Player lostPlayer)
     {
-        if (!Runner.IsServer) return;
+        if (!Runner.IsServer) return; // Only host decides
+
         Loser = lostPlayer;
+
+        // Update UI to show loser immediately
+        UIManager.Singleton.ShowLoserImage(Loser.Name);
+
+        // Switch state to waiting so the round resets
         State = GameState.Waiting;
     }
 
@@ -85,10 +89,9 @@ public class GameLogic : NetworkBehaviour, IPlayerJoined, IPlayerLeft
 
     private void OnTriggerEnter(Collider other)
     {
-        if (Runner.IsServer && Winner == null && other.attachedRigidbody != null && other.attachedRigidbody.TryGetComponent(out Player player))
+        if (Runner.IsServer && other.attachedRigidbody != null && other.attachedRigidbody.TryGetComponent(out Player player))
         {
             UnreadyAll();
-            Winner = null;
             State = GameState.Waiting;
         }
     }
@@ -111,7 +114,6 @@ public class GameLogic : NetworkBehaviour, IPlayerJoined, IPlayerLeft
 
             if (areAllReady)
             {
-                Winner = null;
                 State = GameState.Playing;
                 PreparePlayers();
             }

@@ -18,6 +18,24 @@ public class PhysxBall : NetworkBehaviour
         rb.interpolation = RigidbodyInterpolation.Interpolate;
     }
 
+    private void OnEnable()
+    {
+        // Register with ObjectManager so all clients know about it
+        if (ObjectManager.Singleton != null)
+            ObjectManager.Singleton.RegisterObject(gameObject);
+        
+        col.enabled = true;
+        rb.isKinematic = false;
+        foreach (var r in GetComponentsInChildren<Renderer>())
+            r.enabled = true;
+    }
+
+    private void OnDisable()
+    {
+        if (ObjectManager.Singleton != null)
+            ObjectManager.Singleton.UnregisterObject(gameObject);
+    }
+
     public void Init(Vector3 forward)
     {
         life = TickTimer.CreateFromSeconds(Runner, 5f);
@@ -32,7 +50,7 @@ public class PhysxBall : NetworkBehaviour
     public override void FixedUpdateNetwork()
     {
         if (life.Expired(Runner))
-            Runner.Despawn(Object);
+            Consume();
     }
 
     public void Consume()
@@ -45,6 +63,24 @@ public class PhysxBall : NetworkBehaviour
         foreach (var r in GetComponentsInChildren<Renderer>())
             r.enabled = false;
 
-        Runner.Despawn(Object);
+        // Remove from ObjectManager
+        if (ObjectManager.Singleton != null)
+            ObjectManager.Singleton.UnregisterObject(gameObject);
+
+        // Despawn network object
+        if (Runner != null && Object != null)
+            Runner.Despawn(Object);
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (!HasStateAuthority) return; // Only server counts hits
+
+        var hitPlayer = other.GetComponent<PlayerHitDetectorTrigger>();
+        if (hitPlayer != null)
+        {
+            HitManager.Instance?.RegisterHitForPlayer(hitPlayer);
+            Consume();
+        }
     }
 }

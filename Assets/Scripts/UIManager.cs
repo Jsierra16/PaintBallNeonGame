@@ -1,17 +1,17 @@
-using System.Collections;
-using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
+using TMPro;
 
 public class UIManager : MonoBehaviour
 {
     public static UIManager Singleton
     {
         get => _singleton;
-        private set
+        set
         {
-            if (value == null) _singleton = null;
-            else if (_singleton == null) _singleton = value;
+            if (value == null)
+                _singleton = null;
+            else if (_singleton == null)
+                _singleton = value;
             else if (_singleton != value)
             {
                 Destroy(value);
@@ -21,85 +21,102 @@ public class UIManager : MonoBehaviour
     }
     private static UIManager _singleton;
 
-    [Header("UI Elements")]
+    [Header("Text UI")]
     [SerializeField] private TextMeshProUGUI gameStateText;
     [SerializeField] private TextMeshProUGUI instructionText;
 
-    [Header("Hit & Winner UI")]
-    [SerializeField] private GameObject winnerImage; 
+    [Header("Hit UI")]
     [SerializeField] private GameObject hitsPanel; 
-    [SerializeField] private TMP_Text[] playerHitTexts;  // one slot per player
+    [SerializeField] private TMP_Text[] playerHitTexts;
+
+    [Header("End Game UI")]
+    [SerializeField] private GameObject loserImage;
+    [SerializeField] private TextMeshProUGUI loserText;
 
     private void Awake()
     {
         Singleton = this;
 
-        if (winnerImage != null) winnerImage.SetActive(false);
-        if (hitsPanel != null) hitsPanel.SetActive(true);
+        if (loserImage != null)
+            loserImage.SetActive(false);
+
+        if (hitsPanel != null)
+            hitsPanel.SetActive(true);
     }
 
     private void OnDestroy()
     {
-        if (Singleton == this) Singleton = null;
+        if (Singleton == this)
+            Singleton = null;
     }
 
+    /// <summary>
+    /// Called by Player when they press Ready
+    /// </summary>
     public void DidSetReady()
     {
-        instructionText.text = "Waiting for other player to be ready";
+        if (instructionText != null)
+            instructionText.text = "Waiting for other player to be ready";
     }
 
-    public void SetWaitUI(GameState newState, Player winner, Player loser = null)
+    public void SetWaitUI(GameState newState, Player winner = null, Player loser = null)
     {
         if (newState == GameState.Waiting)
         {
-            if (loser != null)
-            {
-                ShowWinnerImage(loser.Name);
-                return;
-            }
-            else if (winner != null)
-            {
-                ShowWinnerImage(winner.Name);
-                return;
-            }
-            else
-            {
-                gameStateText.text = "Kill your opponent 10 times";
-                instructionText.text = "Press R when ready";
-            }
+            gameStateText.text = winner == null 
+                ? "Kill your opponent 10 times" 
+                : $"{winner.Name} won!";
+            instructionText.text = "Press R when ready!";
+
+            gameStateText.enabled = true;
+            instructionText.enabled = true;
+        }
+        else
+        {
+            gameStateText.enabled = false;
+            instructionText.enabled = false;
         }
 
-        bool active = newState == GameState.Waiting;
-        gameStateText.enabled = active;
-        instructionText.enabled = active;
-        if (hitsPanel != null) hitsPanel.SetActive(active);
+        if (loser != null)
+        {
+            ShowLoserImage(loser.Name);
+        }
     }
 
     public void UpdateHitsUI(int playerNumber, int hits)
     {
-        if (playerNumber - 1 < 0 || playerNumber - 1 >= playerHitTexts.Length) return;
-        playerHitTexts[playerNumber - 1].text = hits.ToString();
+        if (playerNumber - 1 < 0 || playerNumber - 1 >= playerHitTexts.Length)
+            return;
+
+        playerHitTexts[playerNumber - 1].text = $"{hits}";
     }
 
-    public void ShowWinnerImage(string name)
+    public void ShowLoserImage(string playerName)
     {
-        if (winnerImage != null) winnerImage.SetActive(true);
+        if (loserImage != null)
+            loserImage.SetActive(true);
+
+        if (loserText != null)
+            loserText.text = $"{playerName} lost!";
 
         gameStateText.enabled = false;
         instructionText.enabled = false;
-        if (hitsPanel != null) hitsPanel.SetActive(false);
     }
 
-    public void HideWinnerImage()
+    public void HideLoserImage()
     {
-        if (winnerImage != null) winnerImage.SetActive(false);
-        if (hitsPanel != null) hitsPanel.SetActive(true);
+        if (loserImage != null)
+            loserImage.SetActive(false);
     }
 
     public void ResetUI()
     {
-        HideWinnerImage();
-        foreach (var text in playerHitTexts)
-            text.text = "0";
+        if (hitsPanel != null)
+        {
+            foreach (var text in playerHitTexts)
+                text.text = "0";
+        }
+
+        HideLoserImage();
     }
 }
